@@ -1,6 +1,7 @@
 import ShopPage from "@/components/modules/shop/shop-page";
 import { categoryService } from "@/services/category.service";
 import { medicineService } from "@/services/medicine.service";
+import { userService } from "@/services/user.service";
 import { Category, Medicine } from "@/types/api.type";
 
 async function Shop() {
