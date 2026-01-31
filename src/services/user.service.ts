@@ -79,7 +79,6 @@ export const userService = {
     }
   },
 
-  /* -------- Get user by ID -------- */
   getUserById: async function (userId: string) {
     try {
       const res = await fetch(`${API_URL}/users/${userId}`);
@@ -94,7 +93,6 @@ export const userService = {
     }
   },
 
-  /* -------- Update my profile -------- */
   updateMyProfile: async function (
     userId: string,
     payload: { name?: string; image?: string },
@@ -120,7 +118,6 @@ export const userService = {
     }
   },
 
-  /* -------- Admin: Update user status -------- */
   adminUpdateUserStatus: async function (
     userId: string,
     payload: { status: string },
@@ -146,7 +143,6 @@ export const userService = {
     }
   },
 
-  /* -------- Delete user (Admin) -------- */
   deleteUser: async function (userId: string, token: string) {
     try {
       const res = await fetch(`${API_URL}/users/${userId}`, {
