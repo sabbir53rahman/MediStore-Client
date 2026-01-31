@@ -1,26 +1,51 @@
+export const dynamic = "force-dynamic";
+
 import ShopPage from "@/components/modules/shop/shop-page";
 import { categoryService } from "@/services/category.service";
 import { medicineService } from "@/services/medicine.service";
-import { userService } from "@/services/user.service";
 import { Category, Medicine } from "@/types/api.type";
 
-async function Shop() {
-  const categoryData = await categoryService.getAllCategories();
-  const category: Category[] = categoryData.data.data;
-  const { data, error } = await medicineService.getAllMedicines();
+interface ShopProps {
+  searchParams: {
+    categoryId?: string;
+  };
+}
 
-  if (error || !data) {
-    return <div>Failed to load medicines</div>;
+async function Shop(searchParams: ShopProps) {
+  const params = await searchParams.searchParams;
+  const categoryId = params.categoryId;
+  console.log(params.categoryId);
+  // Fetch categories (no cache)
+  const categoryData = await categoryService.getAllCategories({
+    cache: "no-store",
+  });
+  const categories: Category[] = categoryData.data.data;
+
+  // Fetch medicines for selected category
+  let medicines: Medicine[] = [];
+  if (categoryId && categoryId !== "All") {
+    const res = await medicineService.getMedicinesByCategory(
+      categoryId,
+      undefined,
+      {
+        cache: "no-store",
+      },
+    );
+    medicines = res.data.data;
+  } else {
+    const res = await medicineService.getAllMedicines(undefined, {
+      cache: "no-store",
+    });
+    medicines = res.data.data.data;
   }
-
-  const medicines: Medicine[] = data.data.data;
-
-  console.log("Medicines (server) 👉", categoryData);
+console.log(medicines)
 
   return (
-    <div>
-      <ShopPage medicines={medicines} categories={category} />
-    </div>
+    <ShopPage
+      medicines={medicines}
+      categories={categories}
+      categoryId={categoryId ?? "All"}
+    />
   );
 }
 
