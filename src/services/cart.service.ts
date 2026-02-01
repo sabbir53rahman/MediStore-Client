@@ -18,18 +18,22 @@ export const cartService = {
   getMyCart: async function (options?: ServiceOptions) {
     try {
       const config: RequestInit = {
-        credentials: "include",
+        credentials: "include", // sends cookies
       };
 
       if (options?.cache) config.cache = options.cache;
       if (options?.revalidate) config.next = { revalidate: options.revalidate };
 
       const res = await fetch(`${API_URL}/cart`, config);
+      if (!res.ok) throw new Error("Failed to fetch cart");
       const data = await res.json();
 
       return { data, error: null };
-    } catch (err) {
-      return { data: null, error: { message: "Failed to fetch cart" } };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: { message: err.message || "Failed to fetch cart" },
+      };
     }
   },
 
@@ -37,17 +41,19 @@ export const cartService = {
     try {
       const res = await fetch(`${API_URL}/cart/items`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(payload),
       });
-
+      if (!res.ok) throw new Error("Failed to add item to cart");
       const data = await res.json();
+
       return { data, error: null };
-    } catch {
-      return { data: null, error: { message: "Failed to add item to cart" } };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: { message: err.message || "Failed to add item to cart" },
+      };
     }
   },
 
@@ -58,19 +64,20 @@ export const cartService = {
     try {
       const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(payload),
       });
-
+      if (!res.ok) throw new Error("Failed to update cart item quantity");
       const data = await res.json();
+
       return { data, error: null };
-    } catch {
+    } catch (err: any) {
       return {
         data: null,
-        error: { message: "Failed to update cart item quantity" },
+        error: {
+          message: err.message || "Failed to update cart item quantity",
+        },
       };
     }
   },
@@ -81,13 +88,14 @@ export const cartService = {
         method: "DELETE",
         credentials: "include",
       });
-
+      if (!res.ok) throw new Error("Failed to remove item from cart");
       const data = await res.json();
+
       return { data, error: null };
-    } catch {
+    } catch (err: any) {
       return {
         data: null,
-        error: { message: "Failed to remove item from cart" },
+        error: { message: err.message || "Failed to remove item from cart" },
       };
     }
   },

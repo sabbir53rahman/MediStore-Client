@@ -15,7 +15,6 @@ export default function CartPage() {
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Fetch cart only once (or on route change)
   useEffect(() => {
     const fetchCart = async () => {
       setLoading(true);
@@ -43,35 +42,33 @@ export default function CartPage() {
     return <p className="p-4">Your cart is empty.</p>;
   }
 
-  // 🔹 Update quantity
-  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (
+    cartItemId: string,
+    newQuantity: number,
+  ) => {
     if (newQuantity < 1) return;
 
-    const res = await updateCartQuantityAction(itemId, newQuantity);
+    const res = await updateCartQuantityAction(cartItemId, newQuantity);
 
-    if (res.success) {
-      setCart((prev: any) => ({
-        ...prev,
-        items: prev.items.map((item: any) =>
-          item.id === itemId ? { ...item, quantity: newQuantity } : item,
-        ),
-      }));
-    } else {
-      alert(res.error || "Failed to update quantity");
+    if (!res?.success) {
+      alert(res?.error || "Failed to update quantity");
+      return;
     }
+
+    setCart((prev: any) => ({
+      ...prev,
+      items: prev.items.map((item: any) =>
+        item.id === cartItemId ? { ...item, quantity: newQuantity } : item,
+      ),
+    }));
   };
 
-  // 🔹 Remove item
-  const handleRemoveItem = async (itemId: string) => {
-    const res = await removeFromCartAction(itemId);
+  const handleRemoveItem = async (cartItemId: string) => {
+    const res = await removeFromCartAction(cartItemId);
 
-    if (res.success) {
-      setCart((prev: any) => ({
-        ...prev,
-        items: prev.items.filter((item: any) => item.id !== itemId),
-      }));
-    } else {
-      alert(res.error || "Failed to remove item");
+    if (!res?.success) {
+      alert(res?.error || "Failed to remove item");
+      return;
     }
   };
 
@@ -92,21 +89,21 @@ export default function CartPage() {
 
             <div className="flex gap-2">
               <button
-                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                className="px-2 py-1 bg-gray-200 rounded"
                 onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
               >
                 +
               </button>
 
               <button
-                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                className="px-2 py-1 bg-gray-200 rounded"
                 onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
               >
                 -
               </button>
 
               <button
-                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-2 py-1 bg-red-500 text-white rounded"
                 onClick={() => handleRemoveItem(item.id)}
               >
                 Remove
