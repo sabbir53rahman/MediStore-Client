@@ -47,6 +47,9 @@ export const userService = {
     options?: ServiceOptions,
   ) {
     try {
+      const cookieStore = await cookies();
+      const cookieHeader = cookieStore.toString();
+
       const url = new URL(`${API_URL}/users`);
 
       if (params) {
@@ -57,25 +60,20 @@ export const userService = {
         });
       }
 
-      const config: RequestInit = {};
+      const res = await fetch(url.toString(), {
+        headers: {
+          Cookie: cookieHeader,
+        },
+        cache: options?.cache,
+        next: options?.revalidate
+          ? { revalidate: options.revalidate }
+          : undefined,
+      });
 
-      if (options?.cache) {
-        config.cache = options.cache;
-      }
-
-      if (options?.revalidate) {
-        config.next = { revalidate: options.revalidate };
-      }
-
-      const res = await fetch(url.toString(), config);
       const data = await res.json();
-
       return { data, error: null };
     } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to fetch users" },
-      };
+      return { data: null, error: { message: "Failed to fetch users" } };
     }
   },
 

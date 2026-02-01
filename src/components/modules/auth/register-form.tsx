@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -17,6 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import * as z from "zod";
 import { useForm } from "@tanstack/react-form";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import Link from "next/link";
 
 const formSchema = z.object({
   name: z.string().min(1, "This field is required"),
@@ -35,18 +39,36 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
+      try {
+        const toastId = toast.loading("Creating user");
+        const { data, error } = await authClient.signUp.email(value);
+
+        if (error) {
+          toast.error(error.message, { id: toastId });
+          return;
+        }
+        toast.success("User created successfully");
+      } catch (error) {
+        const toastId = toast.loading("Creating user");
+        toast.error("SomeThing went wrong, Please try again.", { id: toastId });
+      }
     },
   });
 
+  const handleGoogleLogin = async () => {
+    const data = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "http://localhost:3000/",
+    });
+  };
+
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
-          Enter your information below to create your account
-        </CardDescription>
+    <Card className="mx-auto w-full max-w-md shadow-lg">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Create account</CardTitle>
+        <CardDescription>Sign up to get started</CardDescription>
       </CardHeader>
+
       <CardContent>
         <form
           id="register"
@@ -65,6 +87,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Field>
                     <FieldLabel htmlFor={field.name}>Name</FieldLabel>
                     <Input
+                      placeholder="Enter your name"
                       type="text"
                       id={field.name}
                       name={field.name}
@@ -87,6 +110,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Field>
                     <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                     <Input
+                      placeholder="Enter your email"
                       type="email"
                       id={field.name}
                       name={field.name}
@@ -109,6 +133,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Field>
                     <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                     <Input
+                      placeholder="Enter your password"
                       type="password"
                       id={field.name}
                       name={field.name}
@@ -125,10 +150,26 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
           </FieldGroup>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
-        <Button form="register" variant="outline">
-          Submit
+
+      <CardFooter className="flex flex-col gap-3">
+        <Button form="register" className="w-full">
+          Create Account
         </Button>
+
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2"
+          onClick={handleGoogleLogin}
+        >
+          Continue with Google
+        </Button>
+
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/auth/login" className="underline">
+            Login
+          </Link>
+        </p>
       </CardFooter>
     </Card>
   );
