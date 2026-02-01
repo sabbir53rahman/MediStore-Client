@@ -26,13 +26,8 @@ export async function getUserByIdAction(userId: string) {
 export async function updateMyProfileAction(
   userId: string,
   payload: { name?: string; image?: string },
-  token: string,
 ) {
-  const { data, error } = await userService.updateMyProfile(
-    userId,
-    payload,
-    token,
-  );
+  const { data, error } = await userService.updateMyProfile(userId, payload);
 
   if (error) return { success: false, error: error.message || error };
   return { success: true, data };
@@ -41,20 +36,18 @@ export async function updateMyProfileAction(
 export async function adminUpdateUserStatusAction(
   userId: string,
   payload: { status: string },
-  token: string,
 ) {
   const { data, error } = await userService.adminUpdateUserStatus(
     userId,
     payload,
-    token,
   );
 
   if (error) return { success: false, error: error.message || error };
   return { success: true, data };
 }
 
-export async function deleteUserAction(userId: string, token: string) {
-  const { data, error } = await userService.deleteUser(userId, token);
+export async function deleteUserAction(userId: string) {
+  const { data, error } = await userService.deleteUser(userId);
 
   if (error) return { success: false, error: error.message || error };
   return { success: true, data };

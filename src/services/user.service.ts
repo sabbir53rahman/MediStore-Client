@@ -2,7 +2,6 @@ import { env } from "@/env";
 import { cookies } from "next/headers";
 
 const AUTH_URL = env.AUTH_URL;
-
 const API_URL = env.API_URL;
 
 export interface GetUsersParams {
@@ -17,22 +16,27 @@ interface ServiceOptions {
   revalidate?: number;
 }
 
+// Helper to convert Next.js cookies() into a proper Cookie header
+const getCookieHeader = async () => {
+  const cookieStore = await cookies();
+  const cookieArray = cookieStore.getAll().map((c) => `${c.name}=${c.value}`);
+  return cookieArray.join("; ");
+};
+
 export const userService = {
+  // Fetch session from AUTH_URL using server-side cookies
   getSession: async function () {
     try {
-      const cookieStore = await cookies();
-      console.log(cookieStore);
+      const cookieHeader = await getCookieHeader();
 
       const res = await fetch(`${AUTH_URL}/get-session`, {
-        headers: {
-          Cookie: cookieStore.toString(),
-        },
+        headers: { Cookie: cookieHeader },
         cache: "no-store",
       });
 
       const session = await res.json();
 
-      if (session === null) {
+      if (!session) {
         return { data: null, error: "Session not found" };
       }
 
@@ -42,13 +46,14 @@ export const userService = {
       return { data: null, error: err };
     }
   },
+
+  // Get all users with optional query params and server-side cookies
   getAllUsers: async function (
     params?: GetUsersParams,
     options?: ServiceOptions,
   ) {
     try {
-      const cookieStore = await cookies();
-      const cookieHeader = cookieStore.toString();
+      const cookieHeader = await getCookieHeader();
 
       const url = new URL(`${API_URL}/users`);
 
@@ -61,9 +66,7 @@ export const userService = {
       }
 
       const res = await fetch(url.toString(), {
-        headers: {
-          Cookie: cookieHeader,
-        },
+        headers: { Cookie: cookieHeader },
         cache: options?.cache,
         next: options?.revalidate
           ? { revalidate: options.revalidate }
@@ -73,20 +76,28 @@ export const userService = {
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: "Failed to fetch users" } };
+      console.error(err);
+      return {
+        data: null,
+        error: { message: "Failed to fetch users", originalError: err },
+      };
     }
   },
 
   getUserById: async function (userId: string) {
     try {
-      const res = await fetch(`${API_URL}/users/${userId}`);
-      const data = await res.json();
+      const cookieHeader = await getCookieHeader();
 
+      const res = await fetch(`${API_URL}/users/${userId}`, {
+        headers: { Cookie: cookieHeader },
+      });
+
+      const data = await res.json();
       return { data, error: null };
     } catch (err) {
       return {
         data: null,
-        error: { message: "Failed to fetch user" },
+        error: { message: "Failed to fetch user", originalError: err },
       };
     }
   },
@@ -94,14 +105,18 @@ export const userService = {
   updateMyProfile: async function (
     userId: string,
     payload: { name?: string; image?: string },
-    token: string,
   ) {
     try {
-      const res = await fetch(`${API_URL}/users/${userId}`, {
-        method: "PATCH",
+      const cookieHeader = await getCookieHeader();
+
+      console.log("Cookie header:", cookieHeader);
+
+      const res = await fetch(`${API_URL}/users/update-profile/${userId}`, {
+        method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          // Cookie: cookieHeader,
         },
         body: JSON.stringify(payload),
       });
@@ -111,7 +126,7 @@ export const userService = {
     } catch (err) {
       return {
         data: null,
-        error: { message: "Failed to update profile" },
+        error: { message: "Failed to update profile", originalError: err },
       };
     }
   },
@@ -119,14 +134,15 @@ export const userService = {
   adminUpdateUserStatus: async function (
     userId: string,
     payload: { status: string },
-    token: string,
   ) {
     try {
+      const cookieHeader = await getCookieHeader();
+
       const res = await fetch(`${API_URL}/users/admin/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Cookie: cookieHeader,
         },
         body: JSON.stringify(payload),
       });
@@ -136,18 +152,18 @@ export const userService = {
     } catch (err) {
       return {
         data: null,
-        error: { message: "Failed to update user status" },
+        error: { message: "Failed to update user status", originalError: err },
       };
     }
   },
 
-  deleteUser: async function (userId: string, token: string) {
+  deleteUser: async function (userId: string) {
     try {
+      const cookieHeader = await getCookieHeader();
+
       const res = await fetch(`${API_URL}/users/${userId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
+        headers: { Cookie: cookieHeader },
       });
 
       const data = await res.json();
@@ -155,7 +171,7 @@ export const userService = {
     } catch (err) {
       return {
         data: null,
-        error: { message: "Failed to delete user" },
+        error: { message: "Failed to delete user", originalError: err },
       };
     }
   },

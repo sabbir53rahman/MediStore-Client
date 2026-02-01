@@ -15,19 +15,24 @@ import Link from "next/link";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { userRoutes } from "@/routes/userRoutes";
 import { Route } from "@/types";
+import { orderService } from "@/services/order.service";
 
-export function AppSidebar({
+export async function AppSidebar({
   user,
   ...props
 }: {
-  user: { role: string } & React.ComponentProps<typeof Sidebar>;
+  user: string & React.ComponentProps<typeof Sidebar>;
 }) {
+  const orderData = await orderService.getMyOrders();
+
+  console.log("orderData :", orderData);
+
   let routes: Route[] = [];
-  switch (user.role) {
-    case "admin":
+  switch (user) {
+    case "ADMIN":
       routes = adminRoutes;
       break;
-    case "user":
+    case "CUSTOMER":
       routes = userRoutes;
       break;
     default:

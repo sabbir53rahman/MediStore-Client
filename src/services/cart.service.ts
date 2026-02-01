@@ -18,7 +18,7 @@ export const cartService = {
   getMyCart: async function (options?: ServiceOptions) {
     try {
       const config: RequestInit = {
-        credentials: "include", // sends cookies
+        credentials: "include",
       };
 
       if (options?.cache) config.cache = options.cache;

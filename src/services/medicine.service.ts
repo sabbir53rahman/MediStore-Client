@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { cookies } from "next/headers";
 
 const API_URL = env.API_URL;
 
@@ -18,151 +19,131 @@ interface ServiceOptions {
   revalidate?: number;
 }
 
-export const medicineService = {
-  createMedicine: async function (payload: any, token: string) {
-    try {
-      const res = await fetch(`${API_URL}/medicines`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+const getCookieHeader = async () => {
+  try {
+    const cookieStore = await cookies();
+    return cookieStore
+      .getAll()
+      .map((c) => `${c.name}=${c.value}`)
+      .join("; ");
+  } catch {
+    return null;
+  }
+};
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to create medicine" },
-      };
+async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<{
+  data: T | null;
+  error: { message: string; status?: number } | null;
+}> {
+  try {
+    const cookieHeader = await getCookieHeader();
+
+    const headers = new Headers(options.headers);
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
     }
+
+    if (cookieHeader) {
+      headers.set("Cookie", cookieHeader);
+    }
+
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      credentials: "include",
+      ...options,
+      headers,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || res.statusText);
+    }
+
+    const data = await res.json();
+    return { data, error: null };
+  } catch (err: any) {
+    return {
+      data: null,
+      error: {
+        message: err.message || "Something went wrong",
+        status: err.status,
+      },
+    };
+  }
+}
+
+function buildQuery(params?: Record<string, any>) {
+  if (!params) return "";
+
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.append(key, String(value));
+    }
+  });
+
+  return query.toString() ? `?${query.toString()}` : "";
+}
+
+export const medicineService = {
+  createMedicine: async (payload: any) => {
+    return apiFetch("/medicines", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
 
-  getAllMedicines: async function (
+  getAllMedicines: async (
     params?: GetMedicinesParams,
     options?: ServiceOptions,
-  ) {
-    try {
-      const url = new URL(`${API_URL}/medicines`);
+  ) => {
+    const query = buildQuery(params);
 
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            url.searchParams.append(key, String(value));
-          }
-        });
-      }
-
-      const config: RequestInit = {};
-
-      if (options?.cache) {
-        config.cache = options.cache;
-      }
-
-      if (options?.revalidate) {
-        config.next = { revalidate: options.revalidate };
-      }
-
-      const res = await fetch(url.toString(), config);
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to fetch medicines" },
-      };
-    }
+    return apiFetch(`/medicines${query}`, {
+      method: "GET",
+      cache: options?.cache,
+      next: options?.revalidate
+        ? { revalidate: options.revalidate }
+        : undefined,
+    });
   },
 
-  getMedicineById: async function (id: string) {
-    try {
-      const res = await fetch(`${API_URL}/medicines/${id}`);
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to fetch medicine" },
-      };
-    }
+  getMedicineById: async (id: string, options?: ServiceOptions) => {
+    return apiFetch(`/medicines/${id}`, {
+      cache: options?.cache,
+      next: options?.revalidate
+        ? { revalidate: options.revalidate }
+        : undefined,
+    });
   },
 
-  getMedicinesByCategory: async function (
+  getMedicinesByCategory: async (
     categoryId: string,
     params?: Omit<GetMedicinesParams, "categoryId">,
     options?: ServiceOptions,
-  ) {
-    try {
-      const url = new URL(
-        `${API_URL}/medicines/category-medicine/${categoryId}`,
-      );
+  ) => {
+    const query = buildQuery(params);
 
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
-            url.searchParams.append(key, String(value));
-          }
-        });
-      }
-
-      const config: RequestInit = {};
-
-      if (options?.cache) {
-        config.cache = options.cache;
-      }
-
-      if (options?.revalidate) {
-        config.next = { revalidate: options.revalidate };
-      }
-
-      const res = await fetch(url.toString(), config);
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to fetch medicines by category" },
-      };
-    }
+    return apiFetch(`/medicines/category-medicine/${categoryId}${query}`, {
+      cache: options?.cache,
+      next: options?.revalidate
+        ? { revalidate: options.revalidate }
+        : undefined,
+    });
   },
 
-  updateMedicine: async function (id: string, payload: any, token: string) {
-    try {
-      const res = await fetch(`${API_URL}/medicines/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to update medicine" },
-      };
-    }
+  updateMedicine: async (id: string, payload: any) => {
+    return apiFetch(`/medicines/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
   },
 
-  deleteMedicine: async function (id: string, token: string) {
-    try {
-      const res = await fetch(`${API_URL}/medicines/${id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to delete medicine" },
-      };
-    }
+  deleteMedicine: async (id: string) => {
+    return apiFetch(`/medicines/${id}`, {
+      method: "DELETE",
+    });
   },
 };

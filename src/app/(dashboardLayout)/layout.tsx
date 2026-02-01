@@ -13,8 +13,10 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { orderService } from "@/services/order.service";
+import { userService } from "@/services/user.service";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
   adminSlot,
   user,
@@ -23,13 +25,16 @@ export default function DashboardLayout({
   adminSlot: React.ReactNode;
   user: React.ReactNode;
 }) {
-  const userInfo = {
-    role: "admin",
-  };
+  const orderData = await orderService.getMyOrders();
+  console.log(orderData);
+
+  const userData = await userService.getSession();
+
+  const userRole = userData?.data.user.role;
 
   return (
     <SidebarProvider>
-      <AppSidebar user={userInfo} />
+      <AppSidebar user={userRole} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
@@ -53,7 +58,7 @@ export default function DashboardLayout({
         </header>
 
         <div className="flex flex-1 flex-col gap-4 p-4">
-          {userInfo.role === "admin" ? adminSlot : user}
+          {userRole === "ADMIN" ? adminSlot : user}
         </div>
       </SidebarInset>
     </SidebarProvider>

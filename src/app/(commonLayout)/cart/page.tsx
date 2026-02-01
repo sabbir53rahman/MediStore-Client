@@ -8,6 +8,7 @@ import {
   updateCartQuantityAction,
 } from "@/actions/cart.actions";
 import { cartService } from "@/services/cart.service";
+import { toast } from "sonner";
 
 export default function CartPage() {
   const router = useRouter();
@@ -50,8 +51,10 @@ export default function CartPage() {
 
     const res = await updateCartQuantityAction(cartItemId, newQuantity);
 
+    console.log("updateQuentity", res);
+
     if (!res?.success) {
-      alert(res?.error || "Failed to update quantity");
+      toast(res?.error || "Failed to update quantity");
       return;
     }
 
@@ -67,7 +70,7 @@ export default function CartPage() {
     const res = await removeFromCartAction(cartItemId);
 
     if (!res?.success) {
-      alert(res?.error || "Failed to remove item");
+      toast(res?.error || "Failed to remove item");
       return;
     }
   };
