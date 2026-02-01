@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { cartService } from "@/services/cart.service";
 
 interface MenuItem {
   title: string;
@@ -31,6 +35,8 @@ interface NavbarClientProps {
 }
 
 export function NavbarClient({ user }: NavbarClientProps) {
+  const router = useRouter();
+  const [cartCount, setCartCount] = useState(0);
   const menu: MenuItem[] = [
     { title: "Home", url: "/" },
     { title: "Shop", url: "/shop" },
@@ -40,9 +46,36 @@ export function NavbarClient({ user }: NavbarClientProps) {
     ? [...menu, { title: "Dashboard", url: "/dashboard" }]
     : menu;
 
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchCart = async () => {
+      const { data, error } = await cartService.getMyCart();
+      console.log("show cart  data from nav", data);
+
+      if (!error && data?.data?.items) {
+        setCartCount(data.data.items.length);
+      } else {
+        setCartCount(0);
+      }
+    };
+
+    fetchCart();
+  }, [user]);
+
   const handleLogout = async () => {
-    await fetch("/api/auth/sign-out", { method: "POST" });
-    window.location.href = "/";
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/auth/login");
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Sign out failed:", err);
+      alert("Failed to log out. Please try again.");
+    }
   };
 
   return (
@@ -71,6 +104,20 @@ export function NavbarClient({ user }: NavbarClientProps) {
 
             {user ? (
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push("/cart")}
+                  className="relative"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </Button>
+
                 <Avatar>
                   <AvatarImage src={user.image || undefined} />
                   <AvatarFallback>{user.name?.[0]}</AvatarFallback>
@@ -114,7 +161,22 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 ))}
 
                 {user ? (
-                  <Button onClick={handleLogout}>Logout</Button>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => router.push("/cart")}
+                      className="relative"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                          {cartCount}
+                        </span>
+                      )}
+                    </Button>
+                    <Button onClick={handleLogout}>Logout</Button>
+                  </div>
                 ) : (
                   <>
                     <Link href="/auth/login">Login</Link>

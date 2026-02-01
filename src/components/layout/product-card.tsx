@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button";
 interface ProductCardProps {
   medicine: Medicine;
   addToCart?: (medicine: Medicine) => void;
+  loading?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ medicine, addToCart }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  medicine,
+  addToCart,
+  loading,
+}) => {
   return (
     <div className="w-full max-w-[280px] rounded-xl bg-white p-3 shadow-sm transition hover:shadow-md">
       {/* Image */}
@@ -19,11 +24,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ medicine, addToCart }) => {
             alt={medicine.name}
             fill
             className="object-contain"
-            sizes="(max-width: 768px) 100vw, 280px"
           />
         </div>
 
-        {/* Out of stock badge */}
         {medicine.stock === 0 && (
           <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
             Out of stock
@@ -36,11 +39,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ medicine, addToCart }) => {
         <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">
           {medicine.name}
         </h3>
-
         <p className="text-xs text-gray-400 line-clamp-1">
           {medicine.description || "Strip"}
         </p>
-
         <p className="text-xs text-gray-500">
           {medicine.category?.name || "Generic Brand"}
         </p>
@@ -51,7 +52,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ medicine, addToCart }) => {
         <span className="text-lg font-bold text-sky-600">
           ৳ {medicine.price}
         </span>
-
         <span
           className={`text-xs font-semibold ${
             medicine.stock > 0 ? "text-emerald-600" : "text-red-500"
@@ -63,12 +63,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ medicine, addToCart }) => {
 
       {/* Button */}
       <Button
-        disabled={medicine.stock === 0}
+        disabled={medicine.stock === 0 || loading}
         onClick={() => addToCart?.(medicine)}
-        className="mt-3 w-full rounded-lg bg-sky-500 hover:bg-sky-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+        className="mt-3 w-full rounded-lg bg-sky-500 hover:bg-sky-600 disabled:bg-slate-300"
       >
         <ShoppingCart size={16} className="mr-2" />
-        Add to cart
+        {loading ? "Adding..." : "Add to cart"}
       </Button>
     </div>
   );

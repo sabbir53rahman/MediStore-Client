@@ -5,29 +5,34 @@ import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Category, Medicine } from "@/types/api.type";
+import { addToCartAction } from "@/actions/cart.actions";
+import { cartService } from "@/services/cart.service";
+import { toast } from "sonner";
 
 interface ShopPageProps {
   medicines: Medicine[];
   categories: Category[];
   categoryId: string;
+  token?: string;
 }
 
 const ShopPage: React.FC<ShopPageProps> = ({
   medicines,
   categories,
   categoryId,
+  token,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentCategory, setCurrentCategory] = useState(categoryId);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  // Update state if prop changes
   useEffect(() => {
     setCurrentCategory(categoryId);
   }, [categoryId]);
 
-  // Client-side search filter
   const filtered = medicines.filter(
     (m) =>
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,18 +40,48 @@ const ShopPage: React.FC<ShopPageProps> = ({
         m.sellerId.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
-  const handleCategoryClick = (categoryId: string | "All") => {
+  const handleCategoryClick = (catId: string | "All") => {
     const params = new URLSearchParams(searchParams.toString());
+    if (catId === "All") params.delete("categoryId");
+    else params.set("categoryId", catId);
 
-    if (categoryId === "All") {
-      params.delete("categoryId");
-    } else {
-      params.set("categoryId", categoryId);
+    setCurrentCategory(catId);
+
+    router.push(`/shop?${params.toString()}`);
+  };
+
+  const handleAddToCart = async (medicine: Medicine) => {
+    if (!token) {
+      toast("Please login to add items to cart");
+      return;
     }
 
-    setCurrentCategory(categoryId);
-    router.push(`/shop?${params.toString()}`);
-    router.refresh();
+    try {
+      setLoadingId(medicine.id);
+
+      const res = await cartService.addToCart({
+        medicineId: medicine.id,
+        quantity: 1,
+      });
+      console.log("Add to cart response:", res);
+
+      setLoadingId(null);
+      if (res.data.success == false) {
+        toast(res.data.message);
+        return;
+      }
+
+      if (res.error) {
+        toast(res.error.message || "Failed to add item to cart");
+        return;
+      } else {
+        toast("Added to cart successfully");
+      }
+    } catch (err) {
+      setLoadingId(null);
+      console.error("Add to cart error:", err);
+      toast("Failed to add item to cart");
+    }
   };
 
   return (
@@ -54,7 +89,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
       {/* Sidebar */}
       <aside className="w-full md:w-64 space-y-6">
         <h3 className="font-bold text-lg">Categories</h3>
-
         <button
           onClick={() => handleCategoryClick("All")}
           className={`w-full text-left px-4 py-2 rounded-lg ${
@@ -94,11 +128,20 @@ const ShopPage: React.FC<ShopPageProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filtered.map((med) => (
-            <ProductCard key={med.id} medicine={med} />
-          ))}
-        </div>
+        {filtered.length === 0 ? (
+          <p className="text-center text-gray-500">No medicines found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filtered.map((med) => (
+              <ProductCard
+                key={med.id}
+                medicine={med}
+                addToCart={handleAddToCart}
+                loading={loadingId === med.id}
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
