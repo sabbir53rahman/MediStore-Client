@@ -1,46 +1,45 @@
+"use client";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ShopPage from "@/components/modules/shop/shop-page";
 import { getAllCategoriesAction } from "@/actions/category.actions";
 import {
   getAllMedicinesAction,
   getMedicinesByCategoryAction,
 } from "@/actions/medicine.actions";
-import { userService } from "@/services/user.service";
-import { Category, Medicine } from "@/types/api.type";
 
-interface ShopProps {
-  searchParams: {
-    categoryId?: string;
-  };
-}
+export default function Shop() {
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get("categoryId") ?? "All";
 
-const Shop = async ({ searchParams }: ShopProps) => {
-  const { data: session } = await userService.getSession();
-  const token = session?.session?.token;
+  const [categories, setCategories] = useState([]);
+  const [medicines, setMedicines] = useState([]);
 
-  const categoryId = searchParams.categoryId;
+  useEffect(() => {
+    const fetchData = async () => {
+      const categoryResponse: any = await getAllCategoriesAction();
+      setCategories(categoryResponse?.data?.data || []);
 
-  // Get categories
-  const categoryResponse = await getAllCategoriesAction();
-  const categories: Category[] = categoryResponse.data?.data || [];
+      if (categoryId && categoryId !== "All") {
+        const res: any = await getMedicinesByCategoryAction(categoryId);
+        setMedicines(res?.data?.data || []);
+      } else {
+        const res: any = await getAllMedicinesAction();
+        console.log(res);
+        setMedicines(res?.data?.data?.data || []);
+      }
+    };
 
-  // Get medicines
-  let medicines: Medicine[] = [];
-  if (categoryId && categoryId !== "All") {
-    const res = await getMedicinesByCategoryAction(categoryId);
-    medicines = res.data?.data || [];
-  } else {
-    const res = await getAllMedicinesAction();
-    medicines = res.data?.data?.data || [];
-  }
+    fetchData();
+  }, [categoryId]);
 
   return (
     <ShopPage
       medicines={medicines}
       categories={categories}
-      categoryId={categoryId ?? "All"}
-      token={token}
+      categoryId={categoryId}
     />
   );
-};
-
-export default Shop;
+}

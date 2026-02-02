@@ -24,12 +24,7 @@ export interface CreateOrderPayload {
   }[];
 }
 
-export enum OrderStatus {
-  PROCESSING = "PROCESSING",
-  DELIVERED = "DELIVERED",
-  CANCELLED = "CANCELLED",
-  SHIPPED = "SHIPPED",
-}
+export type OrderStatus = "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
 const getCookieHeader = async () => {
   try {

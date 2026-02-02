@@ -38,7 +38,7 @@ export default function UpdateMedicine() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await getAllCategoriesAction();
+        const res: any = await getAllCategoriesAction();
         if (res.error) {
           toast.error("Failed to load categories");
         } else {
@@ -59,7 +59,7 @@ export default function UpdateMedicine() {
     async function fetchMedicine() {
       setIsFetching(true);
       try {
-        const res = await getMedicineByIdAction(id);
+        const res: any = await getMedicineByIdAction(id);
         if (res.error) {
           toast.error("Failed to load medicine data");
         } else if (res.data?.data) {
@@ -103,7 +103,6 @@ export default function UpdateMedicine() {
         isFeatured,
         imageUrl,
       });
-      console.log(id);
 
       if (!res.success) {
         toast.error(res.error || "Failed to update medicine");

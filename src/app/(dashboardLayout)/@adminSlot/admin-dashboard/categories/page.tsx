@@ -13,6 +13,11 @@ type Category = {
   name: string;
 };
 
+type ActionResponse<T> = {
+  data?: T;
+  error?: string;
+};
+
 export default function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState("");
@@ -21,7 +26,7 @@ export default function CategoryPage() {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data, error } = await getAllCategoriesAction();
+    const { data, error }: any = await getAllCategoriesAction();
     if (error) {
       toast.error(error);
     } else {

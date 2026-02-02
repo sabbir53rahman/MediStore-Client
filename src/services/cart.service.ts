@@ -14,89 +14,48 @@ interface UpdateQuantityPayload {
   quantity: number;
 }
 
+async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<{ data: T | null; error: { message: string } | null }> {
+  try {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      credentials: "include", 
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || "Something went wrong");
+    }
+
+    const data = await res.json();
+    return { data, error: null };
+  } catch (err: any) {
+    return {
+      data: null,
+      error: { message: err.message || "Something went wrong" },
+    };
+  }
+}
+
 export const cartService = {
-  getMyCart: async function (options?: ServiceOptions) {
-    try {
-      const config: RequestInit = {
-        credentials: "include",
-      };
+  getMyCart: async (options?: ServiceOptions) =>
+    apiFetch("/cart", { method: "GET" }),
 
-      if (options?.cache) config.cache = options.cache;
-      if (options?.revalidate) config.next = { revalidate: options.revalidate };
+  addToCart: async (payload: AddToCartPayload) =>
+    apiFetch("/cart/items", { method: "POST", body: JSON.stringify(payload) }),
 
-      const res = await fetch(`${API_URL}/cart`, config);
-      if (!res.ok) throw new Error("Failed to fetch cart");
-      const data = await res.json();
+  updateQuantity: async (itemId: string, payload: UpdateQuantityPayload) =>
+    apiFetch(`/cart/items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
 
-      return { data, error: null };
-    } catch (err: any) {
-      return {
-        data: null,
-        error: { message: err.message || "Failed to fetch cart" },
-      };
-    }
-  },
-
-  addToCart: async function (payload: AddToCartPayload) {
-    try {
-      const res = await fetch(`${API_URL}/cart/items`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Failed to add item to cart");
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err: any) {
-      return {
-        data: null,
-        error: { message: err.message || "Failed to add item to cart" },
-      };
-    }
-  },
-
-  updateQuantity: async function (
-    itemId: string,
-    payload: UpdateQuantityPayload,
-  ) {
-    try {
-      const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Failed to update cart item quantity");
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err: any) {
-      return {
-        data: null,
-        error: {
-          message: err.message || "Failed to update cart item quantity",
-        },
-      };
-    }
-  },
-
-  removeFromCart: async function (itemId: string) {
-    try {
-      const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to remove item from cart");
-      const data = await res.json();
-
-      return { data, error: null };
-    } catch (err: any) {
-      return {
-        data: null,
-        error: { message: err.message || "Failed to remove item from cart" },
-      };
-    }
-  },
+  removeFromCart: async (itemId: string) =>
+    apiFetch(`/cart/items/${itemId}`, { method: "DELETE" }),
 };

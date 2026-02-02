@@ -7,10 +7,20 @@ import { categoryService } from "@/services/category.service";
 import { medicineService } from "@/services/medicine.service";
 
 export default async function Home() {
-  const medicinesData = await medicineService.getAllMedicines();
+  const medicinesData = (await medicineService.getAllMedicines()) as {
+    data?: {
+      data?: {
+        data?: any[];
+      };
+    };
+  };
   const medicines = medicinesData.data?.data?.data || [];
 
-  const categoryData = await categoryService.getAllCategories();
+  const categoryData = (await categoryService.getAllCategories()) as {
+    data?: {
+      data?: any[];
+    };
+  };
   const categories = categoryData.data?.data || [];
   // console.log(categories);
   return (

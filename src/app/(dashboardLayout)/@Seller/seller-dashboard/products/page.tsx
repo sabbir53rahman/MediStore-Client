@@ -13,7 +13,7 @@ export default async function SellerProductsPage({ searchParams }: PageProps) {
   const page = Number(searchParams?.page ?? 1);
   const limit = Number(searchParams?.limit ?? 10);
 
-  const { data, error } = await getAllMedicinesAction({ page, limit });
+  const { data, error }: any = await getAllMedicinesAction({ page, limit });
   console.log(data);
 
   if (error || !data) {

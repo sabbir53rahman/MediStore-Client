@@ -51,11 +51,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
   };
 
   const handleAddToCart = async (medicine: Medicine) => {
-    if (!token) {
-      toast("Please login to add items to cart");
-      return;
-    }
-
     try {
       setLoadingId(medicine.id);
 
@@ -63,7 +58,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
         medicineId: medicine.id,
         quantity: 1,
       });
-      console.log("Add to cart response:", res);
 
       setLoadingId(null);
       if (res.data.success == false) {
@@ -75,7 +69,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
         toast(res.error.message || "Failed to add item to cart");
         return;
       } else {
-        toast("Added to cart successfully");
+        toast.success("Added to cart successfully");
       }
     } catch (err) {
       setLoadingId(null);

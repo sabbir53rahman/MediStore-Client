@@ -31,7 +31,7 @@ export default function AddMedicine() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await getAllCategoriesAction();
+        const res: any = await getAllCategoriesAction();
         if (res.error) {
           toast.error("Failed to load categories");
         } else {
