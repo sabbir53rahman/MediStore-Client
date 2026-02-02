@@ -21,6 +21,7 @@ import { useForm } from "@tanstack/react-form";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "This field is required"),
@@ -29,6 +30,7 @@ const formSchema = z.object({
 });
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const router = useRouter();
   const form = useForm({
     defaultValues: {
       name: "",
@@ -47,7 +49,8 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
           toast.error(error.message, { id: toastId });
           return;
         }
-        toast.success("User created successfully");
+        toast.success("User created successfully", { id: toastId });
+        router.push("/auth/login");
       } catch (error) {
         const toastId = toast.loading("Creating user");
         toast.error("SomeThing went wrong, Please try again.", { id: toastId });

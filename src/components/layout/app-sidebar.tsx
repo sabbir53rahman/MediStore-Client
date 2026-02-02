@@ -15,25 +15,25 @@ import Link from "next/link";
 import { adminRoutes } from "@/routes/adminRoutes";
 import { userRoutes } from "@/routes/userRoutes";
 import { Route } from "@/types";
-import { orderService } from "@/services/order.service";
+import { sellerRoutes } from "@/routes/sellerRoutes";
 
 export async function AppSidebar({
   user,
   ...props
 }: {
-  user: string & React.ComponentProps<typeof Sidebar>;
-}) {
-  const orderData = await orderService.getMyOrders();
-
-  console.log("orderData :", orderData);
-
+  user: "ADMIN" | "CUSTOMER" | "SELLER";
+} & React.ComponentProps<typeof Sidebar>) {
   let routes: Route[] = [];
+
   switch (user) {
     case "ADMIN":
       routes = adminRoutes;
       break;
     case "CUSTOMER":
       routes = userRoutes;
+      break;
+    case "SELLER":
+      routes = sellerRoutes;
       break;
     default:
       routes = [];

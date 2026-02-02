@@ -8,6 +8,14 @@ interface ServiceOptions {
   revalidate?: number;
 }
 
+export interface GetAllOrdersParams {
+  page?: number;
+  limit?: number;
+  status?: OrderStatus;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
 export interface CreateOrderPayload {
   address: string;
   items: {
@@ -17,10 +25,10 @@ export interface CreateOrderPayload {
 }
 
 export enum OrderStatus {
-  PENDING = "PENDING",
   PROCESSING = "PROCESSING",
-  COMPLETED = "COMPLETED",
+  DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
+  SHIPPED = "SHIPPED",
 }
 
 const getCookieHeader = async () => {
@@ -43,19 +51,16 @@ async function apiFetch<T>(
   try {
     const cookieHeader = await getCookieHeader();
 
-    // Prepare headers
     const headers = new Headers(options.headers);
     if (!headers.has("Content-Type")) {
       headers.set("Content-Type", "application/json");
     }
 
-    // If we have a cookieHeader (Server Side), attach it manually
     if (cookieHeader) {
       headers.set("Cookie", cookieHeader);
     }
 
     const res = await fetch(`${API_URL}${endpoint}`, {
-      // credentials: "include" handles the browser/client side
       credentials: "include",
       ...options,
       headers: headers,
@@ -84,6 +89,34 @@ export const orderService = {
     return apiFetch("/orders", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  getAllOrders: async (
+    params?: GetAllOrdersParams,
+    options?: ServiceOptions,
+  ) => {
+    const query = params
+      ? "?" +
+        new URLSearchParams(
+          Object.entries(params).reduce(
+            (acc, [key, value]) => {
+              if (value !== undefined && value !== null && value !== "") {
+                acc[key] = String(value);
+              }
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
+        ).toString()
+      : "";
+
+    return apiFetch(`/orders${query}`, {
+      method: "GET",
+      cache: options?.cache,
+      next: options?.revalidate
+        ? { revalidate: options.revalidate }
+        : undefined,
     });
   },
 

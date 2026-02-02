@@ -4,6 +4,7 @@ import {
   orderService,
   CreateOrderPayload,
   OrderStatus,
+  GetAllOrdersParams,
 } from "@/services/order.service";
 
 interface ServiceOptions {
@@ -20,6 +21,16 @@ export async function createOrderAction(payload: CreateOrderPayload) {
 
 export async function getMyOrdersAction(options?: ServiceOptions) {
   const { data, error } = await orderService.getMyOrders(options);
+
+  if (error) return { data: null, error: error.message };
+  return { data, error: null };
+}
+
+export async function getAllOrdersAction(
+  params?: GetAllOrdersParams,
+  options?: ServiceOptions,
+) {
+  const { data, error } = await orderService.getAllOrders(params, options);
 
   if (error) return { data: null, error: error.message };
   return { data, error: null };

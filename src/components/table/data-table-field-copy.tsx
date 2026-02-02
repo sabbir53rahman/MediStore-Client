@@ -1,0 +1,28 @@
+import React from "react";
+
+import type { Row } from "@tanstack/react-table";
+import { CheckCheck, Copy } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+
+export const DataTableFieldCopy = <T,>({ row, field, slice }: { row: Row<T>; field: string; slice?: number }) => {
+    const [copied, setCopied] = React.useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(row.getValue(field));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="flex items-center gap-1">
+            <Badge variant="outline">
+                {slice ? (row.getValue(field) as string).slice(0, slice) + "..." : (row.getValue(field) as string)}
+            </Badge>
+
+            <button onClick={handleCopy} className="hover:bg-muted cursor-pointer rounded p-1">
+                {copied ? <CheckCheck className="size-4 text-green-500" /> : <Copy className="size-4" />}
+            </button>
+        </div>
+    );
+};

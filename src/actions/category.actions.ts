@@ -2,18 +2,20 @@
 
 import { categoryService } from "@/services/category.service";
 
+// Fetch all categories
 export async function getAllCategoriesAction() {
   const { data, error } = await categoryService.getAllCategories({
     cache: "no-store",
   });
 
-  if (error) {
-    return { data: null, error: error.message };
-  }
-
-  return { data, error: null };
+  // Just return data and error directly
+  return {
+    data,
+    error: error?.message ?? null,
+  };
 }
 
+// Create a new category
 export async function createCategoryAction(name: string) {
   if (!name || name.trim() === "") {
     return { data: null, error: "Category name is required" };
@@ -21,9 +23,9 @@ export async function createCategoryAction(name: string) {
 
   const { data, error } = await categoryService.createCategory({ name });
 
-  if (error) {
-    return { data: null, error: error.message };
-  }
-
-  return { data, error: null };
+  // Return data and a readable error
+  return {
+    data,
+    error: error?.message ?? null,
+  };
 }

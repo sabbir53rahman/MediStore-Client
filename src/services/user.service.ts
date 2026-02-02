@@ -138,8 +138,8 @@ export const userService = {
     try {
       const cookieHeader = await getCookieHeader();
 
-      const res = await fetch(`${API_URL}/users/admin/${userId}`, {
-        method: "PATCH",
+      const res = await fetch(`${API_URL}/users/admin/update/${userId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Cookie: cookieHeader,

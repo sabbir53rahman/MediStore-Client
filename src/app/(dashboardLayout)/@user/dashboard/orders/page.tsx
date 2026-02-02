@@ -33,7 +33,10 @@ function Orders() {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const { data, error } = await getMyOrdersAction();
+      const { data, error } = (await getMyOrdersAction()) as {
+        data: { data: Order[] } | null;
+        error: string | null;
+      };
 
       if (error) {
         setError(error);

@@ -20,16 +20,14 @@ export default async function DashboardLayout({
   children,
   adminSlot,
   user,
+  Seller,
 }: {
   children: React.ReactNode;
   adminSlot: React.ReactNode;
   user: React.ReactNode;
+  Seller: React.ReactNode;
 }) {
-  const orderData = await orderService.getMyOrders();
-  console.log(orderData);
-
   const userData = await userService.getSession();
-
   const userRole = userData?.data.user.role;
 
   return (
@@ -46,19 +44,21 @@ export default async function DashboardLayout({
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink href="#">
-                  Building Your Application
+                  Health is first priority
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                <BreadcrumbPage>Stay Healthy</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
 
         <div className="flex flex-1 flex-col gap-4 p-4">
-          {userRole === "ADMIN" ? adminSlot : user}
+          {userRole === "ADMIN" && adminSlot}
+          {userRole === "SELLER" && Seller}
+          {userRole === "USER" && user}
         </div>
       </SidebarInset>
     </SidebarProvider>

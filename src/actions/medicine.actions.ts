@@ -49,7 +49,7 @@ export async function createMedicineAction(payload: any) {
 
   if (!token) return { success: false, error: "Unauthorized" };
 
-  const { data, error } = await medicineService.createMedicine(payload, token);
+  const { data, error } = await medicineService.createMedicine(payload);
   if (error) return { success: false, error: error.message };
   return { success: true, data };
 }
@@ -60,11 +60,7 @@ export async function updateMedicineAction(id: string, payload: any) {
 
   if (!token) return { success: false, error: "Unauthorized" };
 
-  const { data, error } = await medicineService.updateMedicine(
-    id,
-    payload,
-    token,
-  );
+  const { data, error } = await medicineService.updateMedicine(id, payload);
   if (error) return { success: false, error: error.message };
   return { success: true, data };
 }
@@ -75,7 +71,7 @@ export async function deleteMedicineAction(id: string) {
 
   if (!token) return { success: false, error: "Unauthorized" };
 
-  const { data, error } = await medicineService.deleteMedicine(id, token);
+  const { data, error } = await medicineService.deleteMedicine(id);
   if (error) return { success: false, error: error.message };
   return { success: true, data };
 }
