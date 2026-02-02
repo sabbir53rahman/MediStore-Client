@@ -18,7 +18,6 @@ interface Category {
 export default function AddMedicine() {
   const router = useRouter();
 
-  // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -29,14 +28,18 @@ export default function AddMedicine() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch categories on mount
   useEffect(() => {
     async function fetchCategories() {
-      const res = await getAllCategoriesAction();
-      if (res.error) {
-        toast.error("Failed to load categories");
-      } else {
-        setCategories(res.data || []);
+      try {
+        const res = await getAllCategoriesAction();
+        if (res.error) {
+          toast.error("Failed to load categories");
+        } else {
+          setCategories(res?.data?.data);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong while fetching categories");
       }
     }
 
@@ -68,7 +71,7 @@ export default function AddMedicine() {
         toast.error(res.error || "Failed to add medicine");
       } else {
         toast.success("Medicine added successfully!");
-        router.push("/seller/seller-dashboard/products");
+        router.push("/seller-dashboard/products");
       }
     } catch (err) {
       console.error(err);
@@ -79,95 +82,147 @@ export default function AddMedicine() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Add New Medicine</h1>
+    <div className="max-w-3xl mx-auto p-6">
+      <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-200">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">
+          Add New Medicine
+        </h1>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div>
-          <Label htmlFor="name">Medicine Name *</Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="Enter medicine name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+          {/* Medicine Name */}
+          <div className="flex flex-col">
+            <Label htmlFor="name" className="font-semibold text-gray-700 mb-2">
+              Medicine Name *
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Enter medicine name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            placeholder="Enter description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
+          {/* Description */}
+          <div className="flex flex-col">
+            <Label
+              htmlFor="description"
+              className="font-semibold text-gray-700 mb-2"
+            >
+              Description
+            </Label>
+            <Textarea
+              id="description"
+              placeholder="Enter description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg h-24"
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="category">Category *</Label>
-          <select
-            id="category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full border rounded-md p-2"
+          {/* Category */}
+          <div className="flex flex-col">
+            <Label
+              htmlFor="category"
+              className="font-semibold text-gray-700 mb-2"
+            >
+              Category *
+            </Label>
+            <select
+              id="category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg p-2"
+            >
+              <option value="">Select category</option>
+              {categories?.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Price & Stock */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex flex-col">
+              <Label
+                htmlFor="price"
+                className="font-semibold text-gray-700 mb-2"
+              >
+                Price ($) *
+              </Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="Enter price"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <Label
+                htmlFor="stock"
+                className="font-semibold text-gray-700 mb-2"
+              >
+                Stock *
+              </Label>
+              <Input
+                id="stock"
+                type="number"
+                placeholder="Enter stock quantity"
+                value={stock}
+                onChange={(e) => setStock(Number(e.target.value))}
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Featured */}
+          <div className="flex items-center gap-3">
+            <Input
+              id="isFeatured"
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="h-5 w-5 text-blue-600 border-gray-300 rounded"
+            />
+            <Label htmlFor="isFeatured" className="font-medium text-gray-700">
+              Featured
+            </Label>
+          </div>
+
+          {/* Image URL */}
+          <div className="flex flex-col">
+            <Label
+              htmlFor="imageUrl"
+              className="font-semibold text-gray-700 mb-2"
+            >
+              Image URL
+            </Label>
+            <Input
+              id="imageUrl"
+              type="text"
+              placeholder="Enter image URL"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-lg"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300"
           >
-            <option value="">Select category</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <Label htmlFor="price">Price ($) *</Label>
-          <Input
-            id="price"
-            type="number"
-            placeholder="Enter price"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="stock">Stock *</Label>
-          <Input
-            id="stock"
-            type="number"
-            placeholder="Enter stock quantity"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Input
-            id="isFeatured"
-            type="checkbox"
-            checked={isFeatured}
-            onChange={(e) => setIsFeatured(e.target.checked)}
-          />
-          <Label htmlFor="isFeatured">Featured</Label>
-        </div>
-
-        <div>
-          <Label htmlFor="imageUrl">Image URL</Label>
-          <Input
-            id="imageUrl"
-            type="text"
-            placeholder="Enter image URL"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-          />
-        </div>
-
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Adding..." : "Add Medicine"}
-        </Button>
-      </form>
+            {isLoading ? "Adding..." : "Add Medicine"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

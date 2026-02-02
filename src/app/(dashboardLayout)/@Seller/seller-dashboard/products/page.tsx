@@ -14,6 +14,7 @@ export default async function SellerProductsPage({ searchParams }: PageProps) {
   const limit = Number(searchParams?.limit ?? 10);
 
   const { data, error } = await getAllMedicinesAction({ page, limit });
+  console.log(data);
 
   if (error || !data) {
     return <div className="text-red-500">Failed to load medicines</div>;
@@ -22,8 +23,12 @@ export default async function SellerProductsPage({ searchParams }: PageProps) {
   // Assuming API returns { items: Medicine[], page, limit, total }
   return (
     <SellerMedicinesTable
-      medicines={data.items}
-      meta={{ page: data.page, limit: data.limit, total: data.total }}
+      medicines={data?.data?.data}
+      meta={{
+        page: data?.data?.page ?? page,
+        limit: data?.data?.limit ?? limit,
+        total: data?.data?.total ?? 0,
+      }}
     />
   );
 }

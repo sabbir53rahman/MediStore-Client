@@ -135,8 +135,8 @@ export const medicineService = {
   },
 
   updateMedicine: async (id: string, payload: any) => {
-    return apiFetch(`/medicines/${id}`, {
-      method: "PATCH",
+    return apiFetch(`/medicines/seller/${id}`, {
+      method: "PUT",
       body: JSON.stringify(payload),
     });
   },

@@ -42,7 +42,13 @@ export function NavbarClient({ user }: NavbarClientProps) {
   ];
 
   const menuWithDashboard = user
-    ? [...menu, { title: "Dashboard", url: "/dashboard" }]
+    ? [
+        ...menu,
+        {
+          title: "Dashboard",
+          url: user.role === "SELLER" ? "/seller-dashboard" : "/dashboard",
+        },
+      ]
     : menu;
 
   useEffect(() => {
