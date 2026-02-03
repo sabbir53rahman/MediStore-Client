@@ -17,6 +17,7 @@ interface Order {
   totalAmount: number;
   status: string;
   items: OrderItem[];
+  createdAt: string;
 }
 
 const statusStyles: Record<string, string> = {
@@ -26,7 +27,7 @@ const statusStyles: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-700",
 };
 
-function Orders() {
+function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,63 +73,53 @@ function Orders() {
     );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+    <div className="container mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-6">My Orders</h1>
 
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="border rounded-2xl p-6 shadow-sm bg-white"
-          >
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Order ID</p>
-                <p className="font-mono text-sm">{order.id}</p>
-              </div>
-
-              <span
-                className={`px-4 py-1 rounded-full text-sm font-medium w-fit ${
-                  statusStyles[order.status] || "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {order.status}
-              </span>
-            </div>
-
-            {/* Divider */}
-            <div className="my-4 border-t" />
-
-            {/* Items */}
-            <div className="space-y-3">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between text-sm bg-gray-50 rounded-lg px-4 py-2"
-                >
-                  <span className="font-medium">
-                    {item.medicine.name} × {item.quantity}
+      <div className="overflow-x-auto bg-white rounded-lg shadow">
+        <table className="w-full table-auto text-left text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-2">Order ID</th>
+              <th className="px-4 py-2">Date</th>
+              <th className="px-4 py-2">Items</th>
+              <th className="px-4 py-2">Total</th>
+              <th className="px-4 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.id} className="border-b hover:bg-gray-50">
+                <td className="px-4 py-2 font-mono">{order.id}</td>
+                <td className="px-4 py-2">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-2">
+                  {order.items.map((item) => (
+                    <div key={item.id}>
+                      {item.medicine.name} × {item.quantity}
+                    </div>
+                  ))}
+                </td>
+                <td className="px-4 py-2 font-semibold text-emerald-600">
+                  ${order.totalAmount.toFixed(2)}
+                </td>
+                <td className="px-4 py-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      statusStyles[order.status] || "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {order.status}
                   </span>
-                  <span className="text-gray-600">
-                    ${item.price.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 flex justify-between items-center">
-              <span className="text-gray-600">Total</span>
-              <span className="text-lg font-semibold text-emerald-600">
-                ${order.totalAmount.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
-export default Orders;
+export default OrdersTable;

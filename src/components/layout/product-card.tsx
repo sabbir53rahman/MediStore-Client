@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
+import Link from "next/link"; // for navigation
+import { ShoppingCart, Eye } from "lucide-react";
 import { Medicine } from "@/types/api.type";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +16,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   loading,
 }) => {
   return (
-    <div className="w-full max-w-[280px] rounded-xl bg-white p-3 shadow-sm transition hover:shadow-md">
+    <div className="w-full lg:max-w-[320px] rounded-xl bg-white p-3 shadow-sm transition hover:shadow-md">
       {/* Image */}
       <div className="relative rounded-lg bg-slate-100 p-3">
         <div className="relative h-36 w-full">
@@ -39,15 +40,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">
           {medicine.name}
         </h3>
-        <p className="text-xs text-gray-400 line-clamp-1">
-          {medicine.description || "Strip"}
+        <p className="text-xs text-gray-400 line-clamp-2">
+          {medicine.description || "No description available"}
         </p>
         <p className="text-xs text-gray-500">
-          {medicine.category?.name || "Generic Brand"}
+          Category: {medicine.category?.name || "Generic Brand"}
         </p>
       </div>
 
-      {/* Price */}
+      {/* Price & Stock */}
       <div className="mt-2 flex items-center justify-between">
         <span className="text-lg font-bold text-sky-600">
           ৳ {medicine.price}
@@ -61,15 +62,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </span>
       </div>
 
-      {/* Button */}
-      <Button
-        disabled={medicine.stock === 0 || loading}
-        onClick={() => addToCart?.(medicine)}
-        className="mt-3 w-full rounded-lg bg-sky-500 hover:bg-sky-600 disabled:bg-slate-300"
-      >
-        <ShoppingCart size={16} className="mr-2" />
-        {loading ? "Adding..." : "Add to cart"}
-      </Button>
+      {/* Buttons */}
+      <div className="mt-3 flex gap-2">
+        <Button
+          disabled={medicine.stock === 0 || loading}
+          onClick={() => addToCart?.(medicine)}
+          className="flex-1 flex items-center justify-center rounded-lg bg-sky-500 hover:bg-sky-600 disabled:bg-slate-300"
+        >
+          <ShoppingCart size={16} className="mr-2" />
+          {loading ? "Adding..." : "Add to cart"}
+        </Button>
+
+        <Link href={`/medicine/${medicine.id}`} className="flex-1">
+          <Button
+            variant="outline"
+            className="flex items-center justify-center w-full rounded-lg border-sky-500 text-sky-500 hover:bg-sky-50"
+          >
+            <Eye size={16} className="mr-2" />
+            View Details
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };

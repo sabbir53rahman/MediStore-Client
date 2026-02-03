@@ -13,7 +13,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { orderService } from "@/services/order.service";
 import { userService } from "@/services/user.service";
 
 export default async function DashboardLayout({
@@ -58,7 +57,7 @@ export default async function DashboardLayout({
         <div className="flex flex-1 flex-col gap-4 p-4">
           {userRole === "ADMIN" && adminSlot}
           {userRole === "SELLER" && Seller}
-          {userRole === "USER" && user}
+          {userRole === "CUSTOMER" && user}
         </div>
       </SidebarInset>
     </SidebarProvider>

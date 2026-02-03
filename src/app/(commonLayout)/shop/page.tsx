@@ -9,6 +9,7 @@ import {
   getAllMedicinesAction,
   getMedicinesByCategoryAction,
 } from "@/actions/medicine.actions";
+import LoadingSpinner from "@/components/modules/medicine/LoadingSpinner";
 
 export default function Shop() {
   const searchParams = useSearchParams();
@@ -50,11 +51,7 @@ export default function Shop() {
 
   // Render loading, error, or main shop page
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg font-medium">Loading...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {

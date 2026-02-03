@@ -1,6 +1,8 @@
 import { Footer } from "@/components/layout/footer";
 import CategoriesSection from "@/components/modules/homepage/CategoriesSection";
 import HomeBanner from "@/components/modules/homepage/HomeBanner";
+import Promo from "@/components/modules/homepage/Promo";
+import Promotions from "@/components/modules/homepage/Promotion";
 import TestimonialsSection from "@/components/modules/homepage/TestimonialsSection";
 import WhyChooseUs from "@/components/modules/homepage/WhyChooseUs";
 import { FeaturedMedicines } from "@/components/modules/medicine/FeaturedMedicines";
@@ -29,8 +31,9 @@ export default async function Home() {
       <HomeBanner />
       <CategoriesSection categories={categories} />
       <FeaturedMedicines medicines={medicines} />
-      <WhyChooseUs />
       <TestimonialsSection />
+      <Promotions />
+      <Promo />
       <Footer />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
     </div>

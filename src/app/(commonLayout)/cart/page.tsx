@@ -117,7 +117,7 @@ export default function CartPage() {
           >
             <div className="flex items-center gap-4">
               <img
-                src={item.medicine.image || "/placeholder.png"}
+                src={item.medicine.imageUrl || "/placeholder.png"}
                 alt={item.medicine.name}
                 className="w-20 h-20 object-cover rounded"
               />
@@ -128,15 +128,17 @@ export default function CartPage() {
                 </p>
               </div>
             </div>
+            <div>
+              <span className="px-2">{item.quantity}</span>
+            </div>
 
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2">
               <button
                 className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
                 onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
               >
                 -
               </button>
-              <span className="px-2">{item.quantity}</span>
               <button
                 className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
                 onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}

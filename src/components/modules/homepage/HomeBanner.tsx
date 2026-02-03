@@ -5,7 +5,7 @@ import banner from "@/assets/banner.jpg";
 
 export default function HomeBanner() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700">
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 mt-12">
       {/* Decorative blobs */}
       <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
@@ -40,7 +40,7 @@ export default function HomeBanner() {
               asChild
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-700"
+              className="border-white text-blue-700 hover:bg-white hover:text-blue-700"
             >
               <Link href="/about">Learn More</Link>
             </Button>

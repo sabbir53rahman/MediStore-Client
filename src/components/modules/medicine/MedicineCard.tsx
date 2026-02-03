@@ -9,7 +9,7 @@ interface Props {
 
 export const MedicineCard = ({ medicine }: Props) => {
   return (
-    <div className="w-full max-w-[280px] rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition">
+    <div className="w-full lg:max-w-[280px] rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition">
       {/* Image + Discount */}
       <div className="relative rounded-lg bg-slate-100 p-3">
         <div className="relative h-36 w-full">
@@ -48,7 +48,7 @@ export const MedicineCard = ({ medicine }: Props) => {
         asChild
         className="mt-3 w-full rounded-lg bg-sky-500 hover:bg-sky-600"
       >
-        <Link href={`/medicines/${medicine.id}`}>Add to cart</Link>
+        <Link href={`/medicine/${medicine.id}`}>View Details</Link>
       </Button>
     </div>
   );

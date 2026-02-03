@@ -5,9 +5,9 @@ import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Category, Medicine } from "@/types/api.type";
-import { addToCartAction } from "@/actions/cart.actions";
 import { cartService } from "@/services/cart.service";
 import { toast } from "sonner";
+import { getAllMedicinesAction } from "@/actions/medicine.actions";
 
 interface ShopPageProps {
   medicines: Medicine[];
@@ -28,39 +28,49 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentCategory, setCurrentCategory] = useState(categoryId);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [medicinesList, setMedicines] = useState<Medicine[]>(medicines || []);
+
+  // Price filter state
+  const [minPrice, setMinPrice] = useState<number | "">("");
+  const [maxPrice, setMaxPrice] = useState<number | "">("");
 
   useEffect(() => {
     setCurrentCategory(categoryId);
-  }, [categoryId]);
+    setMedicines(medicines || []);
+  }, [categoryId, medicines]);
 
-  const filtered = medicines.filter(
-    (m) =>
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (m.sellerId &&
-        m.sellerId.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+  // Filtered by search term safely
+  const filtered = Array.isArray(medicinesList)
+    ? medicinesList.filter(
+        (m) =>
+          m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (m.sellerId &&
+            m.sellerId.toLowerCase().includes(searchTerm.toLowerCase())),
+      )
+    : [];
 
+  // Handle category click
   const handleCategoryClick = (catId: string | "All") => {
     const params = new URLSearchParams(searchParams.toString());
     if (catId === "All") params.delete("categoryId");
     else params.set("categoryId", catId);
 
     setCurrentCategory(catId);
-
     router.push(`/shop?${params.toString()}`);
   };
 
+  // Handle add to cart
   const handleAddToCart = async (medicine: Medicine) => {
     try {
       setLoadingId(medicine.id);
 
-      const res:any = await cartService.addToCart({
+      const res: any = await cartService.addToCart({
         medicineId: medicine.id,
         quantity: 1,
       });
 
       setLoadingId(null);
-      if (res.data.success == false) {
+      if (res.data?.success === false) {
         toast(res.data.message);
         return;
       }
@@ -75,6 +85,30 @@ const ShopPage: React.FC<ShopPageProps> = ({
       setLoadingId(null);
       console.error("Add to cart error:", err);
       toast("Failed to add item to cart");
+    }
+  };
+
+  // Apply price filter
+  const applyPriceFilter = async () => {
+    try {
+      const params: any = {
+        categoryId: currentCategory !== "All" ? currentCategory : undefined,
+        minPrice: minPrice || undefined,
+        maxPrice: maxPrice || undefined,
+        search: searchTerm || undefined,
+      };
+
+      const { data, error }: any = await getAllMedicinesAction(params);
+
+      if (error) {
+        toast.error(error);
+        return;
+      }
+
+      setMedicines(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Price filter error:", err);
+      toast("Failed to filter by price");
     }
   };
 
@@ -107,6 +141,37 @@ const ShopPage: React.FC<ShopPageProps> = ({
             {cat.name}
           </button>
         ))}
+
+        {/* Price Filter */}
+        <div className="space-y-2 mt-6">
+          <h3 className="font-bold text-lg">Filter by Price</h3>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              placeholder="Min"
+              className="w-1/2 px-2 py-1 border rounded"
+              value={minPrice}
+              onChange={(e) =>
+                setMinPrice(e.target.value ? Number(e.target.value) : "")
+              }
+            />
+            <input
+              type="number"
+              placeholder="Max"
+              className="w-1/2 px-2 py-1 border rounded"
+              value={maxPrice}
+              onChange={(e) =>
+                setMaxPrice(e.target.value ? Number(e.target.value) : "")
+              }
+            />
+          </div>
+          <button
+            onClick={applyPriceFilter}
+            className="mt-2 w-full bg-emerald-600 text-white py-1 rounded-lg"
+          >
+            Apply
+          </button>
+        </div>
       </aside>
 
       {/* Main */}
