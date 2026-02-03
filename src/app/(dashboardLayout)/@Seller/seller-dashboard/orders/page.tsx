@@ -17,13 +17,15 @@ export default async function SellerOrdersPage({ searchParams }: PageProps) {
     cache: "no-store",
   });
 
+  console.log("Medicine name:", data?.data?.[0]?.items?.[0]?.medicine?.name);
+
   if (error || !data) {
     return <div className="text-red-500 p-6">Failed to load orders</div>;
   }
 
   return (
     <SellerOrdersTable
-      orders={data?.data?.data}
+      orders={data?.data}
       meta={{
         page: data?.data?.page ?? page,
         limit: data?.data?.limit ?? limit,

@@ -16,24 +16,60 @@ export default function Shop() {
 
   const [categories, setCategories] = useState([]);
   const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(false); // ✅ Loading state
+  const [error, setError] = useState<string | null>(null); // ✅ Error state
 
   useEffect(() => {
     const fetchData = async () => {
-      const categoryResponse: any = await getAllCategoriesAction();
-      setCategories(categoryResponse?.data?.data || []);
+      try {
+        setLoading(true); // start loading
+        setError(null); // reset previous errors
 
-      if (categoryId && categoryId !== "All") {
-        const res: any = await getMedicinesByCategoryAction(categoryId);
-        setMedicines(res?.data?.data || []);
-      } else {
-        const res: any = await getAllMedicinesAction();
-        console.log(res);
+        // Fetch categories
+        const categoryResponse: any = await getAllCategoriesAction();
+        setCategories(categoryResponse?.data?.data || []);
+
+        // Fetch medicines
+        let res: any;
+        if (categoryId && categoryId !== "All") {
+          res = await getMedicinesByCategoryAction(categoryId);
+        } else {
+          res = await getAllMedicinesAction();
+        }
         setMedicines(res?.data?.data?.data || []);
+      } catch (err: any) {
+        console.error(err);
+        setError("Failed to load data. Please try again."); // user-friendly error
+      } finally {
+        setLoading(false); // stop loading
       }
     };
 
     fetchData();
   }, [categoryId]);
+
+  // Render loading, error, or main shop page
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-lg font-medium">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen">
+        <p className="text-red-500 text-lg font-medium">{error}</p>
+        <button
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <ShopPage

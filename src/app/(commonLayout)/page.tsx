@@ -1,3 +1,4 @@
+import { Footer } from "@/components/layout/footer";
 import CategoriesSection from "@/components/modules/homepage/CategoriesSection";
 import HomeBanner from "@/components/modules/homepage/HomeBanner";
 import TestimonialsSection from "@/components/modules/homepage/TestimonialsSection";
@@ -30,6 +31,7 @@ export default async function Home() {
       <FeaturedMedicines medicines={medicines} />
       <WhyChooseUs />
       <TestimonialsSection />
+      <Footer />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
     </div>
   );

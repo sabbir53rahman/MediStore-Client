@@ -55,7 +55,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
     if (!user) return;
 
     const fetchCart = async () => {
-      const { data, error } = await cartService.getMyCart();
+      const { data, error }: any = await cartService.getMyCart();
       console.log("show cart  data from nav", data);
 
       if (!error && data?.data?.items) {
@@ -89,7 +89,10 @@ export function NavbarClient({ user }: NavbarClientProps) {
         {/* Desktop */}
         <nav className="hidden items-center justify-between lg:flex">
           <Link href="/" className="flex items-center gap-2">
-            💊 <span className="text-lg font-semibold">MediStore</span>
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-100">
+              M
+            </div>{" "}
+            <span className="text-lg font-semibold">MediStore</span>
           </Link>
 
           <div className="flex items-center gap-4">
@@ -105,7 +108,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
               </NavigationMenuList>
             </NavigationMenu>
 
-            <ModeToggle />
+            {/* <ModeToggle /> */}
 
             {user ? (
               <div className="flex items-center gap-2">
@@ -146,7 +149,12 @@ export function NavbarClient({ user }: NavbarClientProps) {
 
         {/* Mobile */}
         <div className="lg:hidden flex justify-between">
-          <Link href="/">💊 MediStore</Link>
+          <Link href="/">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-100">
+              M
+            </div>{" "}
+            MediStore
+          </Link>
           <Sheet>
             <SheetTrigger asChild>
               <Button size="icon" variant="outline">

@@ -21,6 +21,7 @@ export type ValidOrderStatus =
   | "SHIPPED"
   | "DELIVERED"
   | "CANCELLED";
+
 export const orderColumns: ColumnDef<Order>[] = [
   {
     accessorKey: "customerName",

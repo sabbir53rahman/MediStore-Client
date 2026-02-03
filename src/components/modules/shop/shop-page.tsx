@@ -54,7 +54,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
     try {
       setLoadingId(medicine.id);
 
-      const res = await cartService.addToCart({
+      const res:any = await cartService.addToCart({
         medicineId: medicine.id,
         quantity: 1,
       });

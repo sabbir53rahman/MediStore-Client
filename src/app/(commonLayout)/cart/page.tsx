@@ -19,7 +19,7 @@ export default function CartPage() {
   useEffect(() => {
     const fetchCart = async () => {
       setLoading(true);
-      const { data, error } = await cartService.getMyCart();
+      const { data, error }: any = await cartService.getMyCart();
 
       if (error) {
         router.push("/auth/login");
@@ -80,6 +80,7 @@ export default function CartPage() {
     setOrdering(true);
 
     const payload = {
+      address: "Your default address",
       items: cart.items.map((item: any) => ({
         medicineId: item.medicine.id,
         quantity: item.quantity,

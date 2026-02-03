@@ -10,12 +10,18 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // assuming you have a Select component
 import * as z from "zod";
 import { useForm } from "@tanstack/react-form";
 import { authClient } from "@/lib/auth-client";
@@ -27,6 +33,11 @@ const formSchema = z.object({
   name: z.string().min(1, "This field is required"),
   password: z.string().min(8, "Minimum length is 8"),
   email: z.email(),
+  role: z
+    .enum(["CUSTOMER", "SELLER"])
+    .refine((val) => val === "CUSTOMER" || val === "SELLER", {
+      message: "Please select a valid role",
+    }),
 });
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
@@ -36,6 +47,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
       name: "",
       email: "",
       password: "",
+      role: "CUSTOMER",
     },
     validators: {
       onSubmit: formSchema,
@@ -53,7 +65,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
         router.push("/auth/login");
       } catch (error) {
         const toastId = toast.loading("Creating user");
-        toast.error("SomeThing went wrong, Please try again.", { id: toastId });
+        toast.error("Something went wrong, please try again.", { id: toastId });
       }
     },
   });
@@ -66,7 +78,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md shadow-lg">
+    <Card className="mx-auto w-full max-w-md shadow-lg" {...props}>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Create account</CardTitle>
         <CardDescription>Sign up to get started</CardDescription>
@@ -104,6 +116,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                 );
               }}
             />
+
             <form.Field
               name="email"
               children={(field) => {
@@ -127,6 +140,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                 );
               }}
             />
+
             <form.Field
               name="password"
               children={(field) => {
@@ -143,6 +157,35 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+
+            {/* New Role Select Field */}
+            <form.Field
+              name="role"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field>
+                    <FieldLabel htmlFor={field.name}>Role</FieldLabel>
+                    <Select
+                      value={field.state.value}
+                      onValueChange={(value) => field.handleChange(value)}
+                    >
+                      <SelectTrigger id={field.name}>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CUSTOMER">Customer</SelectItem>
+                        <SelectItem value="SELLER">Seller</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}

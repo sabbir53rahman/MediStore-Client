@@ -12,7 +12,6 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { updateOrderStatusAction } from "@/actions/order.actions";
-import React from "react";
 
 export interface Order {
   id: string;
@@ -20,6 +19,13 @@ export interface Order {
   totalAmount: number;
   status: "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   createdAt: string;
+  items: {
+    quantity: number;
+    price: number;
+    medicine: {
+      name: string;
+    };
+  }[];
 }
 
 interface SellerOrdersTableProps {
@@ -54,7 +60,19 @@ export function SellerOrdersTable({
 
   const columns: ColumnDef<Order>[] = [
     { header: "Order ID", accessorKey: "id" },
-    { header: "Customer", accessorKey: "customerName" },
+    {
+      header: "Medicine",
+      cell: ({ row }) => {
+        const order = row.original;
+
+        return (
+          <span className="text-sm">
+            {order.items?.map((item) => item.medicine.name).join(", ")}
+          </span>
+        );
+      },
+    },
+
     {
       header: "Total Amount",
       accessorKey: "totalAmount",
@@ -86,7 +104,6 @@ export function SellerOrdersTable({
                 <SelectValue placeholder="Update Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PENDING">PENDING</SelectItem>
                 <SelectItem value="PROCESSING">PROCESSING</SelectItem>
                 <SelectItem value="SHIPPED">SHIPPED</SelectItem>
                 <SelectItem value="DELIVERED">DELIVERED</SelectItem>
