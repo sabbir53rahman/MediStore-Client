@@ -33,7 +33,7 @@ export default function HomeBanner() {
               size="lg"
               className="bg-white text-blue-700 hover:bg-slate-100"
             >
-              <Link href="/medicines">Browse Medicines</Link>
+              <Link href="/shop">Browse Medicines</Link>
             </Button>
 
             <Button
@@ -42,7 +42,7 @@ export default function HomeBanner() {
               variant="outline"
               className="border-white text-blue-700 hover:bg-white hover:text-blue-700"
             >
-              <Link href="/about">Learn More</Link>
+              <Link href="#">Learn More</Link>
             </Button>
           </div>
 

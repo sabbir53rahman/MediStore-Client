@@ -16,12 +16,44 @@ interface ServiceOptions {
   revalidate?: number;
 }
 
-// Helper to convert Next.js cookies() into a proper Cookie header
+/**
+ * Helper to convert Next.js cookies() into a proper Cookie header string
+ * for server-to-server fetch requests.
+ */
 const getCookieHeader = async () => {
-  const cookieStore = await cookies();
-  const cookieArray = cookieStore.getAll().map((c) => `${c.name}=${c.value}`);
-  return cookieArray.join("; ");
+  try {
+    const cookieStore = await cookies();
+    const cookieArray = cookieStore.getAll().map((c) => `${c.name}=${c.value}`);
+    return cookieArray.join("; ");
+  } catch (err) {
+    console.error("Error fetching cookies:", err);
+    return "";
+  }
 };
+
+/**
+ * Helper to handle fetch responses safely
+ */
+async function handleResponse(res: Response) {
+  const contentType = res.headers.get("content-type");
+  let data = null;
+
+  if (contentType && contentType.includes("application/json")) {
+    data = await res.json();
+  }
+
+  if (!res.ok) {
+    return {
+      data: null,
+      error: {
+        message: data?.message || `Request failed with status ${res.status}`,
+        status: res.status,
+      },
+    };
+  }
+
+  return { data, error: null };
+}
 
 export const userService = {
   // Fetch session from AUTH_URL using server-side cookies
@@ -34,16 +66,10 @@ export const userService = {
         cache: "no-store",
       });
 
-      const session = await res.json();
-
-      if (!session) {
-        return { data: null, error: "Session not found" };
-      }
-
-      return { data: session, error: null };
-    } catch (err) {
-      console.error(err);
-      return { data: null, error: err };
+      return await handleResponse(res);
+    } catch (err: any) {
+      console.error("getSession error:", err);
+      return { data: null, error: err.message || "Failed to get session" };
     }
   },
 
@@ -54,7 +80,6 @@ export const userService = {
   ) {
     try {
       const cookieHeader = await getCookieHeader();
-
       const url = new URL(`${API_URL}/users`);
 
       if (params) {
@@ -67,20 +92,16 @@ export const userService = {
 
       const res = await fetch(url.toString(), {
         headers: { Cookie: cookieHeader },
-        cache: options?.cache,
+        cache: options?.cache || "no-store",
         next: options?.revalidate
           ? { revalidate: options.revalidate }
           : undefined,
       });
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      console.error(err);
-      return {
-        data: null,
-        error: { message: "Failed to fetch users", originalError: err },
-      };
+      return await handleResponse(res);
+    } catch (err: any) {
+      console.error("getAllUsers error:", err);
+      return { data: null, error: err.message || "Failed to fetch users" };
     }
   },
 
@@ -92,13 +113,9 @@ export const userService = {
         headers: { Cookie: cookieHeader },
       });
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to fetch user", originalError: err },
-      };
+      return await handleResponse(res);
+    } catch (err: any) {
+      return { data: null, error: err.message || "Failed to fetch user" };
     }
   },
 
@@ -109,25 +126,19 @@ export const userService = {
     try {
       const cookieHeader = await getCookieHeader();
 
-      console.log("Cookie header:", cookieHeader);
-
       const res = await fetch(`${API_URL}/users/update-profile/${userId}`, {
         method: "PUT",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          // Cookie: cookieHeader,
+          Cookie: cookieHeader, // REQUIRED: Backend needs this to verify session
         },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to update profile", originalError: err },
-      };
+      return await handleResponse(res);
+    } catch (err: any) {
+      console.error("updateMyProfile error:", err);
+      return { data: null, error: err.message || "Failed to update profile" };
     }
   },
 
@@ -147,12 +158,11 @@ export const userService = {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
+      return await handleResponse(res);
+    } catch (err: any) {
       return {
         data: null,
-        error: { message: "Failed to update user status", originalError: err },
+        error: err.message || "Failed to update user status",
       };
     }
   },
@@ -166,13 +176,9 @@ export const userService = {
         headers: { Cookie: cookieHeader },
       });
 
-      const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return {
-        data: null,
-        error: { message: "Failed to delete user", originalError: err },
-      };
+      return await handleResponse(res);
+    } catch (err: any) {
+      return { data: null, error: err.message || "Failed to delete user" };
     }
   },
 };

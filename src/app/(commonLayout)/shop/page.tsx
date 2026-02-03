@@ -1,78 +1,83 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import ShopPage from "@/components/modules/shop/shop-page";
 import { getAllCategoriesAction } from "@/actions/category.actions";
-import {
-  getAllMedicinesAction,
-  getMedicinesByCategoryAction,
-} from "@/actions/medicine.actions";
-import LoadingSpinner from "@/components/modules/medicine/LoadingSpinner";
+import { getAllMedicinesAction } from "@/actions/medicine.actions";
 
 export default function Shop() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const categoryId = searchParams.get("categoryId") ?? "All";
+
+  const categoryId = searchParams.get("categoryId") || "All";
+  const minPrice = searchParams.get("minPrice") || "";
+  const maxPrice = searchParams.get("maxPrice") || "";
+  const search = searchParams.get("search") || "";
 
   const [categories, setCategories] = useState([]);
   const [medicines, setMedicines] = useState([]);
-  const [loading, setLoading] = useState(false); // ✅ Loading state
-  const [error, setError] = useState<string | null>(null); // ✅ Error state
+  const [loading, setLoading] = useState(true);
+
+  // Unified filter update to prevent multiple URL pushes
+  const handleFilterChange = useCallback(
+    (filters: Record<string, string>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== "All") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
+
+      params.delete("page");
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true); // start loading
-        setError(null); // reset previous errors
-
-        // Fetch categories
+        setLoading(true);
         const categoryResponse: any = await getAllCategoriesAction();
         setCategories(categoryResponse?.data?.data || []);
 
-        // Fetch medicines
-        let res: any;
-        if (categoryId && categoryId !== "All") {
-          res = await getMedicinesByCategoryAction(categoryId);
-        } else {
-          res = await getAllMedicinesAction();
-        }
+        const params: any = {
+          search: search || undefined,
+          // Convert to Number to ensure backend compatibility
+          minPrice: minPrice ? Number(minPrice) : undefined,
+          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+          categoryId: categoryId !== "All" ? categoryId : undefined,
+        };
+
+        const res: any = await getAllMedicinesAction(params);
         setMedicines(res?.data?.data?.data || []);
-      } catch (err: any) {
-        console.error(err);
-        setError("Failed to load data. Please try again."); // user-friendly error
+      } catch (err) {
+        console.error("Fetch error:", err);
       } finally {
-        setLoading(false); // stop loading
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [categoryId]);
-
-  // Render loading, error, or main shop page
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <p className="text-red-500 text-lg font-medium">{error}</p>
-        <button
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  }, [categoryId, minPrice, maxPrice, search]);
 
   return (
     <ShopPage
       medicines={medicines}
       categories={categories}
-      categoryId={categoryId}
+      activeCategoryId={categoryId}
+      minPrice={minPrice}
+      maxPrice={maxPrice}
+      searchTerm={search}
+      // Note: passing the new object-based filter handler
+      onFilterUpdate={handleFilterChange}
+      isLoading={loading}
     />
   );
 }

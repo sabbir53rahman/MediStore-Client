@@ -113,7 +113,7 @@ export function LoginForm({
               </form.Field>
             </FieldGroup>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-blue-700">
               Log in
             </Button>
           </form>
@@ -122,7 +122,7 @@ export function LoginForm({
         <CardFooter className="flex flex-col gap-3">
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full hidden"
             onClick={handleGoogleLogin}
           >
             Continue with Google

@@ -39,7 +39,6 @@ export function SellerOrdersTable({
 }: SellerOrdersTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const handleStatusChange = async (
     orderId: string,
     newStatus: Order["status"],

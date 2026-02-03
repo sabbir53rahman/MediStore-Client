@@ -198,13 +198,13 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
       </CardContent>
 
       <CardFooter className="flex flex-col gap-3">
-        <Button form="register" className="w-full">
+        <Button form="register" className="w-full bg-blue-700">
           Create Account
         </Button>
 
         <Button
           variant="outline"
-          className="w-full flex items-center gap-2"
+          className="w-full hidden items-center gap-2"
           onClick={handleGoogleLogin}
         >
           Continue with Google

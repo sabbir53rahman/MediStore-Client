@@ -1,202 +1,203 @@
 "use client";
 
 import ProductCard from "@/components/layout/product-card";
-import { Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Search, Loader2, XCircle, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Category, Medicine } from "@/types/api.type";
 import { cartService } from "@/services/cart.service";
 import { toast } from "sonner";
-import { getAllMedicinesAction } from "@/actions/medicine.actions";
 
 interface ShopPageProps {
   medicines: Medicine[];
   categories: Category[];
-  categoryId: string;
-  token?: string;
+  activeCategoryId: string;
+  minPrice: string;
+  maxPrice: string;
+  searchTerm: string;
+  onFilterUpdate: (filters: Record<string, string>) => void;
+  isLoading: boolean;
 }
 
 const ShopPage: React.FC<ShopPageProps> = ({
   medicines,
   categories,
-  categoryId,
-  token,
+  activeCategoryId,
+  minPrice,
+  maxPrice,
+  searchTerm,
+  onFilterUpdate,
+  isLoading,
 }) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentCategory, setCurrentCategory] = useState(categoryId);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [medicinesList, setMedicines] = useState<Medicine[]>(medicines || []);
-
-  // Price filter state
-  const [minPrice, setMinPrice] = useState<number | "">("");
-  const [maxPrice, setMaxPrice] = useState<number | "">("");
+  const [localSearch, setLocalSearch] = useState(searchTerm);
+  const [localMin, setLocalMin] = useState(minPrice);
+  const [localMax, setLocalMax] = useState(maxPrice);
+  const [addingToCartId, setAddingToCartId] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentCategory(categoryId);
-    setMedicines(medicines || []);
-  }, [categoryId, medicines]);
+    setLocalMin(minPrice);
+    setLocalMax(maxPrice);
+    setLocalSearch(searchTerm);
+  }, [minPrice, maxPrice, searchTerm]);
 
-  // Filtered by search term safely
-  const filtered = Array.isArray(medicinesList)
-    ? medicinesList.filter(
-        (m) =>
-          m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (m.sellerId &&
-            m.sellerId.toLowerCase().includes(searchTerm.toLowerCase())),
-      )
-    : [];
-
-  // Handle category click
-  const handleCategoryClick = (catId: string | "All") => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (catId === "All") params.delete("categoryId");
-    else params.set("categoryId", catId);
-
-    setCurrentCategory(catId);
-    router.push(`/shop?${params.toString()}`);
+  const handleApplyFilters = () => {
+    onFilterUpdate({
+      minPrice: localMin,
+      maxPrice: localMax,
+      search: localSearch,
+    });
   };
 
-  // Handle add to cart
+  const handleReset = () => {
+    setLocalSearch("");
+    setLocalMin("");
+    setLocalMax("");
+    onFilterUpdate({
+      categoryId: "All",
+      minPrice: "",
+      maxPrice: "",
+      search: "",
+    });
+  };
+
   const handleAddToCart = async (medicine: Medicine) => {
     try {
-      setLoadingId(medicine.id);
-
+      setAddingToCartId(medicine.id);
       const res: any = await cartService.addToCart({
         medicineId: medicine.id,
         quantity: 1,
       });
-
-      setLoadingId(null);
-      if (res.data?.success === false) {
-        toast(res.data.message);
-        return;
-      }
-
-      if (res.error) {
-        toast(res.error.message || "Failed to add item to cart");
-        return;
-      } else {
-        toast.success("Added to cart successfully");
-      }
-    } catch (err) {
-      setLoadingId(null);
-      console.error("Add to cart error:", err);
-      toast("Failed to add item to cart");
-    }
-  };
-
-  // Apply price filter
-  const applyPriceFilter = async () => {
-    try {
-      const params: any = {
-        categoryId: currentCategory !== "All" ? currentCategory : undefined,
-        minPrice: minPrice || undefined,
-        maxPrice: maxPrice || undefined,
-        search: searchTerm || undefined,
-      };
-
-      const { data, error }: any = await getAllMedicinesAction(params);
-
-      if (error) {
-        toast.error(error);
-        return;
-      }
-
-      setMedicines(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Price filter error:", err);
-      toast("Failed to filter by price");
+      if (res.data?.success === false) throw new Error();
+      toast.success(`${medicine.name} added to cart`);
+    } catch {
+      toast.error("Failed to add to cart");
+    } finally {
+      setAddingToCartId(null);
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-12 flex flex-col md:flex-row gap-12">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 space-y-6">
-        <h3 className="font-bold text-lg">Categories</h3>
-        <button
-          onClick={() => handleCategoryClick("All")}
-          className={`w-full text-left px-4 py-2 rounded-lg ${
-            currentCategory === "All"
-              ? "bg-emerald-600 text-white"
-              : "hover:bg-slate-100"
-          }`}
-        >
-          All Medicines
-        </button>
-
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => handleCategoryClick(cat.id)}
-            className={`w-full text-left px-4 py-2 rounded-lg ${
-              currentCategory === cat.id
-                ? "bg-emerald-600 text-white"
-                : "hover:bg-slate-100"
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-
-        {/* Price Filter */}
-        <div className="space-y-2 mt-6">
-          <h3 className="font-bold text-lg">Filter by Price</h3>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="Min"
-              className="w-1/2 px-2 py-1 border rounded"
-              value={minPrice}
-              onChange={(e) =>
-                setMinPrice(e.target.value ? Number(e.target.value) : "")
-              }
-            />
-            <input
-              type="number"
-              placeholder="Max"
-              className="w-1/2 px-2 py-1 border rounded"
-              value={maxPrice}
-              onChange={(e) =>
-                setMaxPrice(e.target.value ? Number(e.target.value) : "")
-              }
-            />
+      <aside className="w-full md:w-72 space-y-8">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-xl text-slate-800">Categories</h3>
+            {(activeCategoryId !== "All" ||
+              minPrice ||
+              maxPrice ||
+              searchTerm) && (
+              <button
+                onClick={handleReset}
+                className="text-xs text-red-500 hover:underline flex items-center gap-1"
+              >
+                <XCircle className="w-3 h-3" /> Clear All
+              </button>
+            )}
           </div>
-          <button
-            onClick={applyPriceFilter}
-            className="mt-2 w-full bg-emerald-600 text-white py-1 rounded-lg"
-          >
-            Apply
-          </button>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => onFilterUpdate({ categoryId: "All" })}
+              className={`px-4 py-2.5 rounded-xl text-left text-sm font-medium transition-all ${
+                activeCategoryId === "All"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "hover:bg-slate-100 text-slate-600"
+              }`}
+            >
+              All Medicines
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => onFilterUpdate({ categoryId: cat.id })}
+                className={`px-4 py-2.5 rounded-xl text-left text-sm font-medium transition-all ${
+                  activeCategoryId === cat.id
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "hover:bg-slate-100 text-slate-600"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-slate-100">
+          <div className="flex items-center gap-2 mb-4 text-slate-800">
+            <Filter className="w-4 h-4" />
+            <h3 className="font-bold text-xl">Price Range</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="Min"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                value={localMin}
+                onChange={(e) => setLocalMin(e.target.value)}
+              />
+              <span className="text-slate-400">-</span>
+              <input
+                type="number"
+                placeholder="Max"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                value={localMax}
+                onChange={(e) => setLocalMax(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={handleApplyFilters}
+              disabled={isLoading}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Apply Price Filter"
+              )}
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-grow space-y-8">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative group max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search medicines..."
-            className="w-full pl-10 pr-4 py-3 rounded-xl border"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search medicine..."
+            className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-slate-200 shadow-sm outline-none focus:ring-2 focus:ring-emerald-500"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleApplyFilters()}
           />
         </div>
 
-        {filtered.length === 0 ? (
-          <p className="text-center text-gray-500">No medicines found.</p>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="h-80 bg-slate-100 animate-pulse rounded-2xl"
+              />
+            ))}
+          </div>
+        ) : medicines.length === 0 ? (
+          <div className="text-center py-20 bg-slate-50 rounded-3xl">
+            <p className="text-slate-500">No medicines match these filters.</p>
+            <button
+              onClick={handleReset}
+              className="text-emerald-600 font-bold mt-2"
+            >
+              Reset Filters
+            </button>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filtered.map((med) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {medicines.map((med) => (
               <ProductCard
                 key={med.id}
                 medicine={med}
                 addToCart={handleAddToCart}
-                loading={loadingId === med.id}
+                loading={addingToCartId === med.id}
               />
             ))}
           </div>
